@@ -41,6 +41,10 @@ defmodule Strabo.Router do
 
     get "/query", QueryController, :run
 
+    get "/admin/shapefiles", ShapefileController, :show_shapefiles
+    post "/admin/shapefiles/install", ShapefileController, :install_shapefile
+    post "/admin/shapefiles/uninstall", ShapefileController, :uninstall_shapefile
+
     post "/location", LocationController, :create
     post "/location/batch", LocationController, :upload
   end

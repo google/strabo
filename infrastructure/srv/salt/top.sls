@@ -5,7 +5,7 @@ base:
     - match: grain
     - strabo.development
     - strabo.elixir
-    - strabo.axel
+    - strabo.shapefile_management
 
 {% for role in roles %}
   'roles:{{ role }}':

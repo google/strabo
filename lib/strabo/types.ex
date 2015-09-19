@@ -40,4 +40,23 @@ defmodule Strabo.Types do
   defmodule LocationTime do
     defstruct loc: %Location{}, ts: nil
   end
+
+ defmodule Shapefile do
+   @moduledoc "Stores information about a shapefile."
+   defstruct [:id, :name, :description, :url, :status, :local_path, :db_table_name]
+ end
+
+ def make_shapefile(id, name, description, url, status, local_path, db_table_name) do
+   %Shapefile{id: id,
+              name: name,
+              description: description,
+              url: url,
+              status: status,
+              local_path: local_path,
+              db_table_name: db_table_name}
+ end
+
+ def make_shapefile({id, name, description, url, status, local_path, db_table_name}) do
+   make_shapefile(id, name, description, url, status, local_path, db_table_name)
+ end
 end

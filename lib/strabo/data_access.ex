@@ -79,4 +79,37 @@ defmodule Strabo.DataAccess do
       rows |> Enum.map &T.make_location/1
     end
   end
+
+  defmodule Shapefiles do
+    def get_shapefile_by_name(name) do
+      %{rows: [shapefile_data]} = SQL.query(
+        Strabo.Repo,
+        "SELECT id, name, description, url, status, local_path, db_table_name " <>
+          "FROM available_shapefiles WHERE name = $1;",
+        [name])
+      T.make_shapefile(shapefile_data)
+    end
+
+     def set_shapefile_status(id, status) do
+      %{num_rows: 1} = SQL.query(
+        Strabo.Repo,
+        "UPDATE available_shapefiles SET status = $1 WHERE id = $2;",
+        [status, id])
+      :ok
+    end
+
+
+    def get_all_shapefiles() do
+      %{rows: rows} = SQL.query(
+        Strabo.Repo,
+        "SELECT id, name, description, url, status, local_path, db_table_name " <>
+        "FROM available_shapefiles;", [])
+      rows |> Enum.map &T.make_shapefile/1
+    end
+
+    def remove_shapefile_from_db(table_name) do
+      %{rows: rows} = SQL.query(Strabo.Repo, "DROP TABLE " <> table_name <> ";", [])
+      :ok
+    end
+  end
 end
