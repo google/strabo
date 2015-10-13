@@ -19,6 +19,20 @@ defmodule Strabo.Functions do
   alias Strabo.DataAccess
   require Logger
 
+  #####################
+  # Generic Functions #
+  #####################
+
+  def map(function, %T.LocationSet{batch_id: batch_id}) do
+    batch_id
+    |> DataAccess.Locations.locations_from_batch
+    |> Enum.map function
+  end
+
+  ######################
+  # Location Functions #
+  ######################
+
   @spec nearest_neighbors(%T.Location{}, %T.LocationSet{}, Integer) :: [%T.Location{}]
   def nearest_neighbors(%T.Location{lat: lat, lon: lon}, 
                         %T.LocationSet{batch_id: batch_id}, n) do
@@ -48,9 +62,16 @@ defmodule Strabo.Functions do
     %{num_rows_affected: num_rows_affected}
   end
 
-  def map(function, %T.LocationSet{batch_id: batch_id}) do
-    batch_id
-    |> DataAccess.Locations.locations_from_batch
-    |> Enum.map function
+  #######################
+  # Shapefile Functions #
+  #######################
+  
+  @spec get_containing_shapes(%T.Location{}, %T.Shapefile{}) :: [String.t]
+  def get_containing_shapes(location, shapefile) do
+    DataAccess.Shapefiles.get_containing_shapes(location.lat, 
+                                                location.lon,
+                                                shapefile.db_table_name,
+                                                shapefile.geom_column,
+                                                shapefile.id_column)
   end
 end

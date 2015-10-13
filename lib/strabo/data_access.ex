@@ -98,7 +98,6 @@ defmodule Strabo.DataAccess do
       :ok
     end
 
-
     def get_all_shapefiles() do
       %{rows: rows} = SQL.query(
         Strabo.Repo,
@@ -110,6 +109,15 @@ defmodule Strabo.DataAccess do
     def remove_shapefile_from_db(table_name) do
       %{rows: rows} = SQL.query(Strabo.Repo, "DROP TABLE " <> table_name <> ";", [])
       :ok
+    end
+
+    def get_containing_shapes(lat, lon, table_name, geom_column, id_column) do
+      %{rows: rows} = SQL.query(
+        Strabo.Repo,
+        "SELECT " <> id_column <> " FROM " <> table_name <> " WHERE " <>
+        "ST_Contains(" <> geom_column <> ", ST_SetSrid(ST_MakePoint($2, $1), $3))",
+        lat, lon, Strabo.DataAccess.srid)
+      rows
     end
   end
 end
