@@ -1,0 +1,6 @@
+file_client: local
+
+grains:
+  environment: vagrant
+  roles:
+    - postgres

@@ -1,0 +1,22 @@
+# Emacs artifacts
+*~
+\#*
+
+# OS X
+.DS_Store
+
+# Vagrant
+/.vagrant
+
+# Mix artifacts
+/_build
+/deps
+/*.ez
+
+# Python virtualenv, in all the locations anyone might put one.
+/venv/
+/client/venv
+/client/python/venv
+
+# Generate on crash by the VM
+erl_crash.dump
