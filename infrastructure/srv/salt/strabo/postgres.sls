@@ -1,4 +1,4 @@
-{% set postgres_version = "9.3" %}
+{% set postgres_version = "9.4" %}
 {% set postgis_version = "2.1" %}
 
 postgres-server:
