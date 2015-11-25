@@ -18,7 +18,6 @@ defmodule Strabo.ShapefileController do
   use Strabo.Web, :controller
   require Logger
   alias Strabo.ShapefileManager, as: SM
-  plug :action
 
   def show_shapefiles(conn, %{}) do
     result = SM.get_all_shapefile_statuses()

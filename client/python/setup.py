@@ -25,7 +25,9 @@ setup(name='strabo',
       author_email='sbrother@gmail.com',
       license='MIT',
       packages=['strabo'],
+      scripts=['scripts/shp_manager'],
       install_requires = [
           'requests',
+          'prettytable'
       ],
       zip_safe=False)

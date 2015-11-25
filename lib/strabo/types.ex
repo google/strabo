@@ -56,7 +56,7 @@ defmodule Strabo.Types do
               db_table_name: db_table_name}
  end
 
- def make_shapefile({id, name, description, url, status, local_path, db_table_name}) do
+ def make_shapefile([id, name, description, url, status, local_path, db_table_name]) do
    make_shapefile(id, name, description, url, status, local_path, db_table_name)
  end
 end

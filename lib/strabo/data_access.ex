@@ -82,7 +82,7 @@ defmodule Strabo.DataAccess do
 
   defmodule Shapefiles do
     def get_shapefile_by_name(name) do
-      %{rows: [shapefile_data]} = SQL.query(
+      %{rows: [shapefile_data]} = SQL.query!(
         Strabo.Repo,
         "SELECT id, name, description, url, status, local_path, db_table_name " <>
           "FROM available_shapefiles WHERE name = $1;",
@@ -91,7 +91,7 @@ defmodule Strabo.DataAccess do
     end
 
      def set_shapefile_status(id, status) do
-      %{num_rows: 1} = SQL.query(
+      %{num_rows: 1} = SQL.query!(
         Strabo.Repo,
         "UPDATE available_shapefiles SET status = $1 WHERE id = $2;",
         [status, id])
@@ -99,7 +99,7 @@ defmodule Strabo.DataAccess do
     end
 
     def get_all_shapefiles() do
-      %{rows: rows} = SQL.query(
+      %{rows: rows} = SQL.query!(
         Strabo.Repo,
         "SELECT id, name, description, url, status, local_path, db_table_name " <>
         "FROM available_shapefiles;", [])
@@ -107,12 +107,16 @@ defmodule Strabo.DataAccess do
     end
 
     def remove_shapefile_from_db(table_name) do
-      %{rows: rows} = SQL.query(Strabo.Repo, "DROP TABLE " <> table_name <> ";", [])
-      :ok
+      case SQL.query(Strabo.Repo, "DROP TABLE " <> table_name <> ";", []) do
+        {:ok, _} -> :ok
+        _ ->
+          Logger.warn "Table #{table_name} not present in database."
+          :ok
+      end
     end
 
     def get_containing_shapes(lat, lon, table_name, geom_column, id_column) do
-      %{rows: rows} = SQL.query(
+      %{rows: rows} = SQL.query!(
         Strabo.Repo,
         "SELECT " <> id_column <> " FROM " <> table_name <> " WHERE " <>
         "ST_Contains(" <> geom_column <> ", ST_SetSrid(ST_MakePoint($2, $1), $3))",
