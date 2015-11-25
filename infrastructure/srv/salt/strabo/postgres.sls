@@ -7,6 +7,7 @@ postgres-server:
       - postgresql-{{ postgres_version }}
       - postgresql-contrib-{{ postgres_version }}
       - postgresql-{{ postgres_version }}-postgis-{{ postgis_version }}
+      - postgis
 
 strabo_dev:
   postgres_user.present:

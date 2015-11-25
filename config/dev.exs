@@ -39,4 +39,5 @@ config :strabo, Strabo.Repo,
   password: "password",
   database: "strabo_dev",
   hostname: "localhost",
+  port: 5432,
   pool_size: 10
