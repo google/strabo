@@ -82,12 +82,14 @@ defmodule Strabo.DataAccess do
 
   defmodule Shapefiles do
     def get_shapefile_by_name(name) do
-      %{rows: [shapefile_data]} = SQL.query!(
+      case SQL.query!(
         Strabo.Repo,
         "SELECT id, name, description, url, status, local_path, db_table_name " <>
           "FROM available_shapefiles WHERE name = $1;",
-        [name])
-      T.make_shapefile(shapefile_data)
+        [name]) do
+        %{rows: [shapefile_data]} -> {:ok, T.make_shapefile(shapefile_data)}
+        %{num_rows: 0} -> {:error, :not_found}
+      end
     end
 
      def set_shapefile_status(id, status) do

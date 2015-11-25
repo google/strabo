@@ -67,19 +67,15 @@ def install_shapefile(match_result):
     connection = StraboConnection()
     response = requests.post(connection.strabo_url + '/admin/shapefiles/install',
                              json={'name': match_result.group(1)})
-    response.raise_for_status()
-    response_json = response.json()
-
-    print response_json
+    response_message = response.json()["message"]
+    print response_message
 
 def uninstall_shapefile(match_result):
     connection = StraboConnection()
     response = requests.post(connection.strabo_url + '/admin/shapefiles/uninstall',
                              json={'name': match_result.group(1)})
-    response.raise_for_status()
-    response_json = response.json()
-
-    print response_json
+    response_message = response.json()["message"]
+    print response_message
 
 def show_help(match_result):
     print __usage__

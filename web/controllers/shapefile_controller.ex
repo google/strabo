@@ -18,6 +18,7 @@ defmodule Strabo.ShapefileController do
   use Strabo.Web, :controller
   require Logger
   alias Strabo.ShapefileManager, as: SM
+  alias Strabo.ApiUtil
 
   def show_shapefiles(conn, %{}) do
     result = SM.get_all_shapefile_statuses()
@@ -25,12 +26,23 @@ defmodule Strabo.ShapefileController do
   end
 
   def install_shapefile(conn, %{"name" => name}) do
-    :ok = SM.install_shapefile(name)
-    json conn, %{"message" => "OK"}
+    case SM.install_shapefile(name) do
+      :ok -> ApiUtil.send_success(conn, %{"message" =>
+               "Install started. Shapefile status will be set to 'Installed' when complete."})
+      {:error, "Shapefile already installed."} ->
+        ApiUtil.send_error(conn, 409, "Shapefile already installed.")
+      {:error, "Shapefile not found."} ->
+        ApiUtil.send_error(conn, 404, "Shapefile not found.")
+    end
   end
 
   def uninstall_shapefile(conn, %{"name" => name}) do
-    :ok = SM.uninstall_shapefile(name)
-    json conn, %{"message" => "OK"}
+    case SM.uninstall_shapefile(name) do
+      :ok -> ApiUtil.send_success(conn, %{"message" => "OK"})
+      {:error, "Shapefile not installed."} ->
+        ApiUtil.send_error(conn, 401, "Shapefile not installed.")
+      {:error, "Shapefile not found."} ->
+        ApiUtil.send_error(conn, 404, "Shapefile not found.")
+    end
   end
 end

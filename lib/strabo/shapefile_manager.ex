@@ -40,23 +40,27 @@ defmodule Strabo.ShapefileManager do
   successful, sets its status to installed.
   """
   def install_shapefile(shapefile_name) when is_binary(shapefile_name) do
-    DB.Shapefiles.get_shapefile_by_name(shapefile_name)
-    |> install_shapefile
+    case DB.Shapefiles.get_shapefile_by_name(shapefile_name) do
+      {:error, :not_found} -> {:error, "Shapefile not found."}
+      {:ok, shapefile} -> install_shapefile(shapefile)
+    end
   end
 
   @doc """
   Uninstalls a shapefile that has previously been installed.
   """
   def uninstall_shapefile(shapefile_name) when is_binary(shapefile_name) do
-    DB.Shapefiles.get_shapefile_by_name(shapefile_name)
-    |> uninstall_shapefile
+    case DB.Shapefiles.get_shapefile_by_name(shapefile_name) do
+      {:error, :not_found} -> {:error, "Shapefile not found."}
+      {:ok, shapefile} -> uninstall_shapefile(shapefile)
+    end
   end
 
   def uninstall_shapefile(shapefile) do
     case shapefile.status do
       nil -> {:error, "Shapefile not installed."}
       # "in_progress" -> {:error, "Shapefile locked for (un)installation."}
-      _ -> 
+      _ ->
         :ok = DB.Shapefiles.set_shapefile_status(shapefile.id, "in_progress")
         spawn fn -> start_shapefile_uninstall(shapefile) end
         :ok
@@ -67,7 +71,7 @@ defmodule Strabo.ShapefileManager do
     case shapefile.status do
       "installed" -> {:error, "Shapefile already installed."}
       "in_progress" -> {:error, "Shapefile locked for (un)installation."}
-      _ -> 
+      _ ->
         :ok = DB.Shapefiles.set_shapefile_status(shapefile.id, "in_progress")
         spawn fn -> start_shapefile_download(shapefile) end
         :ok
@@ -115,14 +119,14 @@ defmodule Strabo.ShapefileManager do
   end
 
   defp import_script(sql_script_path, shapefile) do
-    db_params = Ecto.Repo.Config.config(:strabo, Strabo.Repo)
+    db_params = Application.get_env(:strabo, Strabo.Repo)
     System.put_env("PGPASSWORD", db_params[:password])
     case System.cmd("psql", ["-U", db_params[:username],
                              "-d", db_params[:database],
                              "-h", db_params[:hostname],
                              "-p", to_string(db_params[:port]),
                              "-f", sql_script_path]) do
-      {_, 0} -> 
+      {_, 0} ->
         DB.Shapefiles.set_shapefile_status(shapefile.id, "installed")
         :ok
       {error_message, _} -> cancel_shapefile_download(error_message, shapefile)
