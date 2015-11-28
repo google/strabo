@@ -84,7 +84,7 @@ defmodule Strabo.DataAccess do
     def get_shapefile_by_name(name) do
       case SQL.query!(
         Strabo.Repo,
-        "SELECT id, name, description, url, status, local_path, db_table_name " <>
+        "SELECT id, name, description, url, status, local_path, db_table_name, geom_column_name, id_column_name, name_column_name " <>
           "FROM available_shapefiles WHERE name = $1;",
         [name]) do
         %{rows: [shapefile_data]} -> {:ok, T.make_shapefile(shapefile_data)}
@@ -103,7 +103,7 @@ defmodule Strabo.DataAccess do
     def get_all_shapefiles() do
       %{rows: rows} = SQL.query!(
         Strabo.Repo,
-        "SELECT id, name, description, url, status, local_path, db_table_name " <>
+        "SELECT id, name, description, url, status, local_path, db_table_name, geom_column_name, id_column_name, name_column_name " <>
         "FROM available_shapefiles;", [])
       rows |> Enum.map &T.make_shapefile/1
     end
@@ -117,12 +117,12 @@ defmodule Strabo.DataAccess do
       end
     end
 
-    def get_containing_shapes(lat, lon, table_name, geom_column, id_column) do
+    def get_containing_shapes(lat, lon, table_name, geom_column_name, id_column_name) do
       %{rows: rows} = SQL.query!(
         Strabo.Repo,
-        "SELECT " <> id_column <> " FROM " <> table_name <> " WHERE " <>
-        "ST_Contains(" <> geom_column <> ", ST_SetSrid(ST_MakePoint($2, $1), $3))",
-        lat, lon, Strabo.DataAccess.srid)
+        "SELECT " <> id_column_name <> " FROM " <> table_name <> " WHERE " <>
+          "ST_Contains(" <> geom_column_name <> ", ST_SetSrid(ST_MakePoint($2, $1), $3))",
+        [lat, lon, Strabo.DataAccess.srid])
       rows
     end
   end

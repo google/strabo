@@ -14,7 +14,7 @@
 #
 ################################################################################
 
-defmodule Strabo.Functions do 
+defmodule Strabo.Functions do
   alias Strabo.Types, as: T
   alias Strabo.DataAccess
   require Logger
@@ -34,13 +34,13 @@ defmodule Strabo.Functions do
   ######################
 
   @spec nearest_neighbors(%T.Location{}, %T.LocationSet{}, Integer) :: [%T.Location{}]
-  def nearest_neighbors(%T.Location{lat: lat, lon: lon}, 
+  def nearest_neighbors(%T.Location{lat: lat, lon: lon},
                         %T.LocationSet{batch_id: batch_id}, n) do
     DataAccess.Locations.get_nearest(lat, lon, batch_id, n)
   end
 
   @spec nearest_neighbor(%T.Location{}, %T.LocationSet{}) :: %T.Location{}
-  def nearest_neighbor(%T.Location{lat: lat, lon: lon}, 
+  def nearest_neighbor(%T.Location{lat: lat, lon: lon},
                        %T.LocationSet{batch_id: batch_id}) do
     [loc] = DataAccess.Locations.get_nearest(lat, lon, batch_id, 1)
     loc
@@ -65,10 +65,17 @@ defmodule Strabo.Functions do
   #######################
   # Shapefile Functions #
   #######################
-  
-  @spec get_containing_shapes(%T.Location{}, %T.Shapefile{}) :: [String.t]
-  def get_containing_shapes(location, shapefile) do
-    DataAccess.Shapefiles.get_containing_shapes(location.lat, 
+
+  @spec surrounding_polygons(%T.Location{}, String.t) :: [String.t]
+  def surrounding_polygons(location, shapefile_name) when is_binary(shapefile_name) do
+    {:ok, shapefile} = DataAccess.Shapefiles.get_shapefile_by_name(shapefile_name)
+    surrounding_polygons(location, shapefile)
+  end
+
+
+  @spec surrounding_polygons(%T.Location{}, %T.Shapefile{}) :: [String.t]
+  def surrounding_polygons(location, shapefile) do
+    DataAccess.Shapefiles.get_containing_shapes(location.lat,
                                                 location.lon,
                                                 shapefile.db_table_name,
                                                 shapefile.geom_column,

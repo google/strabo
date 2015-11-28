@@ -43,20 +43,27 @@ defmodule Strabo.Types do
 
  defmodule Shapefile do
    @moduledoc "Stores information about a shapefile."
-   defstruct [:id, :name, :description, :url, :status, :local_path, :db_table_name]
+   defstruct [:id, :name, :description, :url, :status, :local_path, :db_table_name,
+              :geom_column, :id_column, :name_column]
  end
 
- def make_shapefile(id, name, description, url, status, local_path, db_table_name) do
+  def make_shapefile(id, name, description, url, status, local_path, db_table_name,
+                     geom_column, id_column, name_column) do
    %Shapefile{id: id,
               name: name,
               description: description,
               url: url,
               status: status,
               local_path: local_path,
-              db_table_name: db_table_name}
+              db_table_name: db_table_name,
+              geom_column: geom_column,
+              id_column: id_column,
+              name_column: name_column}
  end
 
- def make_shapefile([id, name, description, url, status, local_path, db_table_name]) do
-   make_shapefile(id, name, description, url, status, local_path, db_table_name)
+ def make_shapefile([id, name, description, url, status, local_path, db_table_name,
+                     geom_column, id_column, name_column]) do
+   make_shapefile(id, name, description, url, status, local_path, db_table_name,
+                  geom_column, id_column, name_column)
  end
 end

@@ -30,6 +30,9 @@ class Location(StraboObject):
     def nearest_neighbor(self, location_set):
         return self.from_sexpr("nearest_neighbor", self, location_set)
 
+    def surrounding_polygons(self, shapefile_name):
+        return self.from_sexpr("surrounding_polygons", self, shapefile_name)
+
     def sexpr(self):
         return ("location", self.lat, self.lon)
 

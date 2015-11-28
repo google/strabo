@@ -68,7 +68,7 @@ defmodule Strabo.Compiler do
     def tokenize(text) do
       {token, rest} =
         text
-        |> match_or_skip(@string_matcher, &(&1))
+        |> match_or_skip(@string_matcher, &format_string/1)
         |> match_or_skip(@paren_matcher, &(&1))
         |> match_or_skip(@param_matcher, &format_parameter/1)
         |> match_or_skip(@atom_matcher, &(&1))
@@ -82,6 +82,13 @@ defmodule Strabo.Compiler do
         {:skip, _}     -> tokenize(rest)            # token was ignored
         {_, _}         -> [token | tokenize(rest)]  # token accepted
       end
+    end
+
+    defp format_string(quoted_string) do
+      # Accepts a string inside quotes, and removes the leading and trailing
+      # quotes.
+      # TODO: Handle escaped quotes inside.
+      String.slice(quoted_string, 1, String.length(quoted_string) - 2)
     end
 
     defp format_parameter(param_string) do
@@ -124,8 +131,8 @@ defmodule Strabo.Compiler do
     def transform(node) do
       case node do
         {lambda = {:., [], [_, :lambda]}, [], [(arg_cell = {{:., [], [_, arg_name]}, [], []}), body]} ->
-          replace_arg_in_body = 
-            fn sub_node -> 
+          replace_arg_in_body =
+            fn sub_node ->
               case sub_node do
                 {{:., [], [_, arg_name]}, [], []} -> {arg_name, [], Elixir}
                 _ -> sub_node
@@ -135,7 +142,7 @@ defmodule Strabo.Compiler do
         _ -> node
       end
     end
-    
+
     def compile(parse_result) do
       parse_result_string = Macro.to_string(parse_result)
       Logger.info "Parse result: #{inspect parse_result_string}"
