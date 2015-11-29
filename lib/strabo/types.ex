@@ -20,15 +20,16 @@ defmodule Strabo.Types do
   # Basic point datatype
   defmodule Location do
     defstruct [:lat, :lon]
-  end
 
-  def make_location(lat, lon) do
-    %Location{lat: U.sanitize_float(lat),
-              lon: U.sanitize_float(lon)}
-  end
+    def get_fields() do
+      atoms = Map.from_struct(Strabo.Types.Location) |> Map.keys
+      field_list = Enum.join((for n <- atoms, do: "locations." <> Atom.to_string(n)), ", ")
+      {atoms, field_list}
+    end
 
-  def make_location([lat, lon]) do
-    make_location(lat, lon)
+    def from_row(symbols, row) do
+      struct(Strabo.Types.Location, List.zip([symbols, row]))
+    end
   end
 
   # A set of points
@@ -43,27 +44,28 @@ defmodule Strabo.Types do
 
  defmodule Shapefile do
    @moduledoc "Stores information about a shapefile."
+
    defstruct [:id, :name, :description, :url, :status, :local_path, :db_table_name,
-              :geom_column, :id_column, :name_column]
- end
+              :geom_column_name, :id_column_name, :name_column_name]
 
-  def make_shapefile(id, name, description, url, status, local_path, db_table_name,
-                     geom_column, id_column, name_column) do
-   %Shapefile{id: id,
-              name: name,
-              description: description,
-              url: url,
-              status: status,
-              local_path: local_path,
-              db_table_name: db_table_name,
-              geom_column: geom_column,
-              id_column: id_column,
-              name_column: name_column}
- end
+   def get_fields() do
+     atoms = Map.from_struct(Strabo.Types.Shapefile) |> Map.keys
+     field_list = Enum.join((for n <- atoms, do: "available_shapefiles." <>
+       Atom.to_string(n)), ", ")
+     {atoms, field_list}
+   end
 
- def make_shapefile([id, name, description, url, status, local_path, db_table_name,
-                     geom_column, id_column, name_column]) do
-   make_shapefile(id, name, description, url, status, local_path, db_table_name,
-                  geom_column, id_column, name_column)
+   def from_row(symbols, row) do
+     struct(Strabo.Types.Shapefile, List.zip([symbols, row]))
+   end
+  end
+
+ defmodule Polygon do
+   defstruct [:id, :name, :shapefile_name]
+
+   def from_row(row) do
+     atoms = Map.from_struct(Strabo.Types.Polygon) |> Map.keys
+     struct(Strabo.Types.Polygon, List.zip([atoms, row]))
+   end
  end
 end

@@ -16,6 +16,7 @@
 
 defmodule Strabo.Functions do
   alias Strabo.Types, as: T
+  alias Strabo.Util, as: U
   alias Strabo.DataAccess
   require Logger
 
@@ -48,7 +49,10 @@ defmodule Strabo.Functions do
 
   @spec location(float, float) :: %T.Location{}
   def location(lat, lon) do
-    T.make_location(lat, lon)
+    {[:lat, :lon] = symbols, _} = T.Location.get_fields()
+    points = Enum.map([lat, lon], &U.sanitize_float/1)
+
+    T.Location.from_row(symbols, points)
   end
 
   @spec locations_from_batch(Integer) :: %T.LocationSet{}
@@ -66,19 +70,17 @@ defmodule Strabo.Functions do
   # Shapefile Functions #
   #######################
 
-  @spec surrounding_polygons(%T.Location{}, String.t) :: [String.t]
+  @spec surrounding_polygons(%T.Location{}, String.t) :: [%T.Polygon{}]
   def surrounding_polygons(location, shapefile_name) when is_binary(shapefile_name) do
     {:ok, shapefile} = DataAccess.Shapefiles.get_shapefile_by_name(shapefile_name)
     surrounding_polygons(location, shapefile)
   end
 
 
-  @spec surrounding_polygons(%T.Location{}, %T.Shapefile{}) :: [String.t]
+  @spec surrounding_polygons(%T.Location{}, %T.Shapefile{}) :: [%T.Polygon{}]
   def surrounding_polygons(location, shapefile) do
     DataAccess.Shapefiles.get_containing_shapes(location.lat,
                                                 location.lon,
-                                                shapefile.db_table_name,
-                                                shapefile.geom_column,
-                                                shapefile.id_column)
+                                                shapefile)
   end
 end

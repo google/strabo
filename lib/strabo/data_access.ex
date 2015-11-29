@@ -44,15 +44,17 @@ defmodule Strabo.DataAccess do
 
     @spec get_nearest(number, number, integer, integer) :: [%T.Location{}]
     def get_nearest(lat, lon, batch_id, n) do
+      {symbols, field_list} = T.Location.get_fields()
+
       %{rows: rows} = SQL.query!(
         Strabo.Repo,
-        "SELECT lat, lon FROM locations " <>
+        "SELECT #{field_list} FROM locations " <>
           "WHERE batch_id = $1 " <>
           "ORDER BY geom <-> ST_SetSrid(ST_MakePoint($3, $2), $4) " <>
           "LIMIT $5;",
         [batch_id, lat, lon, Strabo.DataAccess.srid, n])
 
-      rows |> Enum.map &T.make_location/1
+      rows |> Enum.map(fn row -> T.Location.from_row(symbols, row) end)
     end
 
     def new_batch() do
@@ -72,22 +74,26 @@ defmodule Strabo.DataAccess do
     end
 
     def locations_from_batch(batch_id) do
+      {symbols, field_list} = T.Location.get_fields()
+
       %{rows: rows} = SQL.query!(
         Strabo.Repo,
-        "SELECT lat, lon FROM locations WHERE batch_id = $1 ",
+        "SELECT #{field_list} FROM locations WHERE batch_id = $1 ",
         [batch_id])
-      rows |> Enum.map &T.make_location/1
+      rows |> Enum.map(fn row -> T.Location.from_row(symbols, row) end)
     end
   end
 
   defmodule Shapefiles do
     def get_shapefile_by_name(name) do
+      {symbols, field_list} = T.Shapefile.get_fields()
+
       case SQL.query!(
         Strabo.Repo,
-        "SELECT id, name, description, url, status, local_path, db_table_name, geom_column_name, id_column_name, name_column_name " <>
-          "FROM available_shapefiles WHERE name = $1;",
+        "SELECT #{field_list} FROM available_shapefiles WHERE name = $1;",
         [name]) do
-        %{rows: [shapefile_data]} -> {:ok, T.make_shapefile(shapefile_data)}
+        %{rows: [shapefile_data]} ->
+          {:ok, T.Shapefile.from_row(symbols, shapefile_data)}
         %{num_rows: 0} -> {:error, :not_found}
       end
     end
@@ -101,11 +107,12 @@ defmodule Strabo.DataAccess do
     end
 
     def get_all_shapefiles() do
+      {symbols, field_list} = T.Shapefile.get_fields()
+
       %{rows: rows} = SQL.query!(
         Strabo.Repo,
-        "SELECT id, name, description, url, status, local_path, db_table_name, geom_column_name, id_column_name, name_column_name " <>
-        "FROM available_shapefiles;", [])
-      rows |> Enum.map &T.make_shapefile/1
+        "SELECT #{field_list} FROM available_shapefiles;", [])
+      rows |> Enum.map(fn row -> T.Shapefile.from_row(symbols, row) end)
     end
 
     def remove_shapefile_from_db(table_name) do
@@ -117,13 +124,15 @@ defmodule Strabo.DataAccess do
       end
     end
 
-    def get_containing_shapes(lat, lon, table_name, geom_column_name, id_column_name) do
+    def get_containing_shapes(lat, lon, shapefile) do
       %{rows: rows} = SQL.query!(
         Strabo.Repo,
-        "SELECT " <> id_column_name <> " FROM " <> table_name <> " WHERE " <>
-          "ST_Contains(" <> geom_column_name <> ", ST_SetSrid(ST_MakePoint($2, $1), $3))",
+        "SELECT " <> shapefile.id_column_name <> ", " <>
+          shapefile.name_column_name <> " FROM " <>
+          shapefile.db_table_name <> " WHERE " <> "ST_Contains(" <>
+          shapefile.geom_column_name <> ", ST_SetSrid(ST_MakePoint($2, $1), $3))",
         [lat, lon, Strabo.DataAccess.srid])
-      rows
+      rows |> Enum.map(fn row -> T.Polygon.from_row(row ++ [shapefile.name]) end)
     end
   end
 end
